@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>陈佩蓉</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --chinese-red-deep: #6E0D0F;
+      --chinese-red: #9E1B1B;
+      --champagne-gold: #E6C786;
+      --gold-bright: #F5DFAC;
+      --warm-ivory: #FDFBF7;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 35%, #B32020 0%, #8C1515 60%, #5E0A0B 100%);
+      color: var(--warm-ivory);
+      font-family: 'Noto Serif SC', serif;
+    }
+
+    .btn-gold {
+      background: linear-gradient(135deg, #F5DFAC 0%, #DFB76C 50%, #F0D290 100%);
+      color: #630C0D;
+      box-shadow: 0 12px 28px -6px rgba(223, 183, 108, 0.45);
+      transition: all 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .btn-gold:hover {
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 18px 34px -6px rgba(245, 223, 172, 0.6);
+      filter: brightness(1.04);
+    }
+    .btn-gold:active {
+      transform: translateY(0) scale(0.98);
+    }
+
+    .btn-outline-gold {
+      background: rgba(110, 13, 15, 0.45);
+      color: rgba(253, 251, 247, 0.9);
+      border: 1.5px solid rgba(230, 199, 134, 0.5);
+      transition: all 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .btn-outline-gold:hover {
+      border-color: rgba(245, 223, 172, 0.85);
+      background: rgba(145, 22, 24, 0.65);
+    }
+
+    .fade-transition {
+      transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1), transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .fade-hidden {
+      opacity: 0;
+      transform: translateY(14px) scale(0.985);
+      pointer-events: none;
+    }
+    .fade-visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .finale-text {
+      transition: opacity 1.5s ease-in-out, transform 1.5s ease-in-out;
+    }
+
+    .frame-border {
+      position: fixed;
+      inset: 18px;
+      border: 1px solid rgba(230, 199, 134, 0.22);
+      pointer-events: none;
+      z-index: 5;
+    }
+  </style>
+</head>
+<body class="relative w-screen h-screen flex items-center justify-center">
+
+  <!-- 全屏极简金线暗框 -->
+  <div class="frame-border"></div>
+
+  <!-- 背景微光画布 -->
+  <canvas id="bgCanvas" class="fixed inset-0 pointer-events-none z-0"></canvas>
+
+  <!-- 全屏主舞台：仅展示问题与按钮 -->
+  <main class="relative z-10 w-full h-full flex items-center justify-center px-6 sm:px-12 md:px-20">
+
+    <!-- ================= 画面一：初始问题页 ================= -->
+    <section id="startScreen" class="fade-transition fade-visible w-full max-w-4xl flex flex-col items-center justify-center text-center">
+      <h1 class="text-3xl sm:text-5xl md:text-6xl font-bold text-[#FDFBF7] leading-snug mb-6 tracking-wide">
+        陈佩蓉，你愿意继续这场婚姻吗？
+      </h1>
+
+      <p class="text-base sm:text-xl text-[#F5DFAC]/90 mb-14 tracking-wider">
+        （注意：一旦接受，便不可反悔退回）
+      </p>
+
+      <button id="startYesBtn" type="button"
+        class="btn-gold px-14 sm:px-20 py-4 sm:py-5 rounded-full font-bold text-xl sm:text-2xl tracking-widest">
+        是
+      </button>
+    </section>
+
+    <!-- ================= 画面二：21道问题页 ================= -->
+    <section id="questionScreen" class="fade-transition fade-hidden hidden w-full max-w-4xl flex-col items-center justify-center text-center">
+      <div id="questionContentWrap" class="fade-transition fade-visible flex flex-col items-center justify-center mb-14 px-2 sm:px-6">
+        <h2 id="questionText" class="text-3xl sm:text-5xl md:text-6xl font-semibold text-[#FDFBF7] leading-relaxed tracking-wide">
+          你愿意一辈子陪着我吗？
+        </h2>
+      </div>
+
+      <div id="buttonArena" class="relative w-full min-h-[100px] flex flex-wrap items-center justify-center gap-8 sm:gap-12">
+        <button id="answerYesBtn" type="button"
+          class="btn-gold px-12 sm:px-16 py-4 sm:py-5 rounded-full font-bold text-xl sm:text-2xl tracking-widest z-10">
+          是
+        </button>
+
+        <button id="answerNoBtn" type="button"
+          class="btn-outline-gold px-12 sm:px-16 py-4 sm:py-5 rounded-full font-medium text-xl sm:text-2xl tracking-widest">
+          否
+        </button>
+      </div>
+    </section>
+
+    <!-- ================= 画面三：终章宣告与渐隐页 ================= -->
+    <section id="finaleScreen" class="fade-transition fade-hidden hidden w-full max-w-4xl flex-col items-center justify-center text-center">
+      <div id="finalePhase1" class="finale-text opacity-100 transform translate-y-0 flex flex-col items-center justify-center">
+        <h2 class="text-3xl sm:text-5xl md:text-6xl font-bold text-[#F5DFAC] leading-relaxed tracking-wider">
+          我在此正式宣布：你们结为夫妻
+        </h2>
+      </div>
+
+      <div id="finalePhase2" class="finale-text opacity-0 pointer-events-none hidden transform translate-y-4 flex-col items-center justify-center">
+        <h2 class="text-3xl sm:text-5xl md:text-6xl font-bold text-[#FDFBF7] leading-relaxed tracking-wider">
+          请查收你的邮箱以获取结婚证书
+        </h2>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // =========================================================================
+    // 1. 21道问题列表（纯粹问题文本，无任何多余文字）
+    // =========================================================================
+    const QUESTIONS = [
+      { text: "你愿意一辈子陪着我吗？" },
+      { text: "你愿意和我一起慢慢变老吗？" },
+      { text: "你愿意把我当作你一生的唯一吗？" },
+      { text: "无论未来发生什么，你都会选择我吗？" },
+      { text: "你愿意和我建立一个幸福的家庭吗？" },
+      { text: "你愿意和我分享未来的每一个重要时刻吗？" },
+      { text: "你愿意在我难过的时候一直陪着我吗？" },
+      { text: "你愿意和我一起实现我们的梦想吗？" },
+      { text: "你愿意永远对我坦诚和忠诚吗？" },
+      { text: "你愿意在每一个清晨醒来时都有我陪伴吗？" },
+      { text: "你愿意和我一起度过人生的每一个春夏秋冬吗？" },
+      { text: "即使我们老了，你还会像现在一样爱我吗？" },
+      { text: "你愿意在遇到困难时永远不放弃我们的感情吗？" },
+      { text: "你愿意把我们的家变成充满爱和温暖的地方吗？" },
+      { text: "你愿意和我一起迎接未来的孩子吗？" },
+      { text: "你愿意在我最脆弱的时候成为我的依靠吗？" },
+      { text: "你愿意和我一起创造属于我们的美好回忆吗？" },
+      { text: "即使生活不总是完美，你也愿意和我一起走下去吗？" },
+      { text: "你愿意用一生的时间去爱我、珍惜我吗？" },
+      { text: "你愿意和我携手走过这一生，直到白头吗？" },
+      {
+        isLong: true,
+        text: "陈佩蓉，你是否愿意接受这一杯净重110克的至尊奢华版华味坊酸汤面叶，发誓珍爱那70克如丝绸般柔滑的非油炸手工面叶，尊享由年份山西老陈醋、极品紫菜与精巧脱水小虾米组成的40克奢华配料宝库，承诺满含爱意地淋上那包高定特香芝麻油，并用附赠的高端折叠塑料叉优雅地品鉴这份稀世美味，作为你的彩礼？"
+      }
+    ];
+
+    const state = {
+      currentIndex: 0,
+      noAttemptsOnCurrent: 0,
+      finaleTimer: null,
+      isTransitioning: false,
+      bgmStarted: false
+    };
+
+    // =========================================================================
+    // 2. 《带我去找夜生活》（告五人）120 BPM 自动循环背景音乐合成器
+    // =========================================================================
+    let audioCtx = null;
+    let bgmSchedulerId = null;
+
+    // 音名转频率表
+    const NOTE_FREQ = {
+      "C3": 130.81, "D3": 146.83, "E3": 164.81, "F3": 174.61, "G3": 196.00, "A3": 220.00, "B3": 246.94,
+      "C4": 261.63, "D4": 293.66, "E4": 329.63, "F4": 349.23, "G4": 392.00, "A4": 440.00, "B4": 493.88,
+      "C5": 523.25, "D5": 587.33, "E5": 659.25, "F5": 698.46, "G5": 783.99, "A5": 880.00
+    };
+
+    // 《带我去找夜生活》标志性前奏电钢琴分解和弦 + 主歌/副歌旋律编曲 (120 BPM, 1拍 = 0.5秒, 1个八分音符 = 0.25秒)
+    // 每个元素: [小节内八分音符偏移(0..63), 主旋律音符, 持续八分音符数, 伴奏低音, 和弦音组]
+    const NIGHTLIFE_LOOP_STEPS = 64; // 8小节循环 (每小节8个八分音符)
+    const NIGHTLIFE_SCORE = [
+      // 第1小节 (Fmaj7): "如果夜里不能寐" / 前奏标志性合成器律动
+      { step: 0,  melody: "E5", dur: 2, bass: "F3", chord: ["A4", "C5", "E5"] },
+      { step: 2,  melody: "C5", dur: 2, bass: null, chord: null },
+      { step: 4,  melody: "A4", dur: 2, bass: "F3", chord: ["A4", "C5"] },
+      { step: 6,  melody: "E5", dur: 1, bass: null, chord: null },
+      { step: 7,  melody: "D5", dur: 1, bass: null, chord: null },
+
+      // 第2小节 (G6): "让我陪你一起睡"
+      { step: 8,  melody: "D5", dur: 2, bass: "G3", chord: ["B4", "D5", "G5"] },
+      { step: 10, melody: "B4", dur: 2, bass: null, chord: null },
+      { step: 12, melody: "G4", dur: 2, bass: "G3", chord: ["B4", "D5"] },
+      { step: 14, melody: "D5", dur: 1, bass: null, chord: null },
+      { step: 15, melody: "C5", dur: 1, bass: null, chord: null },
+
+      // 第3小节 (Em7): "带我去找夜生活"
+      { step: 16, melody: "B4", dur: 2, bass: "E3", chord: ["G4", "B4", "D5"] },
+      { step: 18, melody: "G4", dur: 2, bass: null, chord: null },
+      { step: 20, melody: "E5", dur: 2, bass: "E3", chord: ["G4", "B4"] },
+      { step: 22, melody: "D5", dur: 2, bass: null, chord: null },
+
+      // 第4小节 (Am7): "带我去找夜生活"
+      { step: 24, melody: "C5", dur: 3, bass: "A3", chord: ["A4", "C5", "E5"] },
+      { step: 27, melody: "B4", dur: 1, bass: null, chord: null },
+      { step: 28, melody: "A4", dur: 2, bass: "A3", chord: ["G4", "C5"] },
+      { step: 30, melody: "G4", dur: 2, bass: null, chord: null },
+
+      // 第5小节 (Fmaj7): 副歌高潮推进 "形同虚设的时间"
+      { step: 32, melody: "A4", dur: 1, bass: "F3", chord: ["A4", "C5", "F5"] },
+      { step: 33, melody: "C5", dur: 1, bass: null, chord: null },
+      { step: 34, melody: "E5", dur: 2, bass: null, chord: null },
+      { step: 36, melody: "G5", dur: 2, bass: "F3", chord: ["A4", "C5", "E5"] },
+      { step: 38, melody: "E5", dur: 2, bass: null, chord: null },
+
+      // 第6小节 (G): "在你眼里成为了无限"
+      { step: 40, melody: "D5", dur: 1, bass: "G3", chord: ["B4", "D5", "G5"] },
+      { step: 41, melody: "E5", dur: 1, bass: null, chord: null },
+      { step: 42, melody: "D5", dur: 2, bass: null, chord: null },
+      { step: 44, melody: "B4", dur: 2, bass: "G3", chord: ["G4", "B4", "D5"] },
+      { step: 46, melody: "G4", dur: 2, bass: null, chord: null },
+
+      // 第7小节 (Em7 -> Am7): "好似无尽的灯街"
+      { step: 48, melody: "E5", dur: 2, bass: "E3", chord: ["G4", "B4", "E5"] },
+      { step: 50, melody: "D5", dur: 2, bass: null, chord: null },
+      { step: 52, melody: "C5", dur: 2, bass: "A3", chord: ["A4", "C5", "E5"] },
+      { step: 54, melody: "B4", dur: 1, bass: null, chord: null },
+      { step: 55, melody: "A4", dur: 1, bass: null, chord: null },
+
+      // 第8小节 (Dm7 -> G -> C): "带我去找夜生活"
+      { step: 56, melody: "A4", dur: 1, bass: "D3", chord: ["F4", "A4", "C5"] },
+      { step: 57, melody: "B4", dur: 1, bass: null, chord: null },
+      { step: 58, melody: "C5", dur: 2, bass: "G3", chord: ["G4", "B4", "D5"] },
+      { step: 60, melody: "D5", dur: 2, bass: null, chord: null },
+      { step: 62, melody: "C5", dur: 2, bass: "C3", chord: ["G4", "C5", "E5"] }
+    ];
+
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          audioCtx = new AudioContextClass();
+        }
+      }
+      if (audioCtx && audioCtx.state === "suspended") {
+        audioCtx.resume();
+      }
+    }
+
+    function playSynthTone(freq, startTime, duration, type = "sine", peakGain = 0.08) {
+      if (!audioCtx || !freq) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, startTime);
+
+      gain.gain.setValueAtTime(0.0001, startTime);
+      gain.gain.linearRampToValueAtTime(peakGain, startTime + 0.025);
+      gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(startTime);
+      osc.stop(startTime + duration + 0.03);
+    }
+
+    function startNightlifeBGM() {
+      if (state.bgmStarted) return;
+      try {
+        initAudio();
+        if (!audioCtx) return;
+        state.bgmStarted = true;
+
+        const stepDuration = 0.25; // 120 BPM 八分音符 (0.25s)
+        let currentStep = 0;
+
+        const tick = () => {
+          if (!audioCtx) return;
+          const now = audioCtx.currentTime + 0.03;
+          const events = NIGHTLIFE_SCORE.filter(item => item.step === currentStep);
+
+          for (const ev of events) {
+            if (ev.melody && NOTE_FREQ[ev.melody]) {
+              playSynthTone(NOTE_FREQ[ev.melody], now, ev.dur * stepDuration * 0.95, "triangle", 0.095);
+              // 叠加八度泛音营造《带我去找夜生活》梦幻合成器音色
+              playSynthTone(NOTE_FREQ[ev.melody] * 2, now, ev.dur * stepDuration * 0.7, "sine", 0.025);
+            }
+            if (ev.bass && NOTE_FREQ[ev.bass]) {
+              playSynthTone(NOTE_FREQ[ev.bass], now, stepDuration * 3.6, "sine", 0.11);
+            }
+            if (ev.chord) {
+              for (const cNote of ev.chord) {
+                if (NOTE_FREQ[cNote]) {
+                  playSynthTone(NOTE_FREQ[cNote], now, stepDuration * 3.2, "sine", 0.032);
+                }
+              }
+            }
+          }
+
+          currentStep = (currentStep + 1) % NIGHTLIFE_LOOP_STEPS;
+        };
+
+        tick();
+        bgmSchedulerId = setInterval(tick, stepDuration * 1000);
+      } catch (e) {
+        // 忽略受限浏览器音频异常
+      }
+    }
+
+    // 首次点击页面任意位置或按钮即刻启动《带我去找夜生活》背景音乐
+    document.addEventListener("pointerdown", () => {
+      startNightlifeBGM();
+    }, { once: true });
+
+    // =========================================================================
+    // 3. DOM 节点引用
+    // =========================================================================
+    const startScreen = document.getElementById("startScreen");
+    const questionScreen = document.getElementById("questionScreen");
+    const finaleScreen = document.getElementById("finaleScreen");
+
+    const startYesBtn = document.getElementById("startYesBtn");
+    const questionContentWrap = document.getElementById("questionContentWrap");
+    const questionText = document.getElementById("questionText");
+    const answerYesBtn = document.getElementById("answerYesBtn");
+    const answerNoBtn = document.getElementById("answerNoBtn");
+
+    const finalePhase1 = document.getElementById("finalePhase1");
+    const finalePhase2 = document.getElementById("finalePhase2");
+
+    // =========================================================================
+    // 4. 全屏交互与问答切换逻辑
+    // =========================================================================
+    function switchScreen(targetScreen) {
+      const screens = {
+        start: startScreen,
+        questions: questionScreen,
+        finale: finaleScreen
+      };
+
+      Object.entries(screens).forEach(([key, el]) => {
+        if (key === targetScreen) {
+          el.classList.remove("hidden");
+          el.classList.add("flex");
+          requestAnimationFrame(() => {
+            el.classList.remove("fade-hidden");
+            el.classList.add("fade-visible");
+          });
+        } else {
+          el.classList.remove("fade-visible");
+          el.classList.add("fade-hidden");
+          el.classList.add("hidden");
+          el.classList.remove("flex");
+        }
+      });
+    }
+
+    function resetNoButtonState() {
+      state.noAttemptsOnCurrent = 0;
+      answerNoBtn.style.transform = "translate(0px, 0px) scale(1)";
+      answerNoBtn.textContent = "否";
+      answerNoBtn.className = "btn-outline-gold px-12 sm:px-16 py-4 sm:py-5 rounded-full font-medium text-xl sm:text-2xl tracking-widest";
+      answerYesBtn.style.transform = "scale(1)";
+    }
+
+    function renderQuestion(index, animate = true) {
+      const q = QUESTIONS[index];
+      if (!q) return;
+
+      resetNoButtonState();
+
+      const updateDOM = () => {
+        if (q.isLong) {
+          questionText.className = "text-xl sm:text-3xl md:text-4xl font-semibold text-[#F5DFAC] leading-relaxed tracking-wide max-w-4xl";
+        } else {
+          questionText.className = "text-3xl sm:text-5xl md:text-6xl font-semibold text-[#FDFBF7] leading-relaxed tracking-wide";
+        }
+        questionText.textContent = q.text;
+      };
+
+      if (!animate) {
+        updateDOM();
+        return;
+      }
+
+      state.isTransitioning = true;
+      questionContentWrap.classList.remove("fade-visible");
+      questionContentWrap.classList.add("fade-hidden");
+
+      setTimeout(() => {
+        updateDOM();
+        questionContentWrap.classList.remove("fade-hidden");
+        questionContentWrap.classList.add("fade-visible");
+        state.isTransitioning = false;
+      }, 280);
+    }
+
+    function handleAnswerYes() {
+      if (state.isTransitioning) return;
+      startNightlifeBGM();
+      spawnBurstParticles(20);
+
+      if (state.currentIndex < QUESTIONS.length - 1) {
+        state.currentIndex += 1;
+        renderQuestion(state.currentIndex, true);
+      } else {
+        startFinaleSequence();
+      }
+    }
+
+    function handleAnswerNo() {
+      if (state.isTransitioning) return;
+      startNightlifeBGM();
+
+      if (state.noAttemptsOnCurrent >= 4) {
+        handleAnswerYes();
+        return;
+      }
+
+      state.noAttemptsOnCurrent += 1;
+
+      if (state.noAttemptsOnCurrent < 4) {
+        const offsetX = (Math.random() > 0.5 ? 1 : -1) * (45 + Math.random() * 75);
+        const offsetY = (Math.random() > 0.5 ? 1 : -1) * (20 + Math.random() * 40);
+        const scaleNo = Math.max(0.7, 1 - state.noAttemptsOnCurrent * 0.08);
+        const scaleYes = Math.min(1.25, 1 + state.noAttemptsOnCurrent * 0.07);
+
+        answerNoBtn.style.transform = `translate(${offsetX.toFixed(0)}px, ${offsetY.toFixed(0)}px) scale(${scaleNo})`;
+        answerYesBtn.style.transform = `scale(${scaleYes})`;
+      } else {
+        answerNoBtn.style.transform = "translate(0px, 0px) scale(1)";
+        answerNoBtn.className = "btn-gold px-12 sm:px-16 py-4 sm:py-5 rounded-full font-bold text-xl sm:text-2xl tracking-widest";
+        answerNoBtn.textContent = "是";
+      }
+    }
+
+    // =========================================================================
+    // 5. 终章自动渐隐与显现
+    // =========================================================================
+    function startFinaleSequence() {
+      if (state.finaleTimer) {
+        clearTimeout(state.finaleTimer);
+        state.finaleTimer = null;
+      }
+
+      switchScreen("finale");
+      spawnBurstParticles(75);
+
+      finalePhase1.classList.remove("hidden", "opacity-0", "-translate-y-4", "pointer-events-none");
+      finalePhase1.classList.add("flex", "opacity-100", "translate-y-0");
+
+      finalePhase2.classList.add("hidden", "opacity-0", "translate-y-4", "pointer-events-none");
+      finalePhase2.classList.remove("flex", "opacity-100", "translate-y-0");
+
+      state.finaleTimer = setTimeout(() => {
+        finalePhase1.classList.remove("opacity-100", "translate-y-0");
+        finalePhase1.classList.add("opacity-0", "-translate-y-4", "pointer-events-none");
+
+        setTimeout(() => {
+          finalePhase1.classList.add("hidden");
+          finalePhase1.classList.remove("flex");
+
+          finalePhase2.classList.remove("hidden");
+          finalePhase2.classList.add("flex");
+
+          requestAnimationFrame(() => {
+            finalePhase2.classList.remove("opacity-0", "translate-y-4", "pointer-events-none");
+            finalePhase2.classList.add("opacity-100", "translate-y-0");
+            spawnBurstParticles(45);
+          });
+        }, 1500);
+      }, 3000);
+    }
+
+    // =========================================================================
+    // 6. 背景金粉微粒画布
+    // =========================================================================
+    const bgCanvas = document.getElementById("bgCanvas");
+    const ctx = bgCanvas.getContext("2d");
+    let ambientParticles = [];
+    let burstParticles = [];
+
+    function resizeCanvas() {
+      bgCanvas.width = window.innerWidth;
+      bgCanvas.height = window.innerHeight;
+    }
+
+    function initAmbientParticles() {
+      ambientParticles = [];
+      const count = Math.min(45, Math.floor((window.innerWidth * window.innerHeight) / 26000));
+      for (let i = 0; i < count; i++) {
+        ambientParticles.push({
+          x: Math.random() * bgCanvas.width,
+          y: Math.random() * bgCanvas.height,
+          r: Math.random() * 2.2 + 0.8,
+          vy: -(Math.random() * 0.35 + 0.12),
+          vx: (Math.random() - 0.5) * 0.25,
+          alpha: Math.random() * 0.4 + 0.12
+        });
+      }
+    }
+
+    function spawnBurstParticles(count = 24) {
+      const cx = bgCanvas.width / 2;
+      const cy = bgCanvas.height / 2;
+      const colors = ["#F5DFAC", "#E6C786", "#FFD700", "#FF6B6B", "#FFF5E1"];
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 5.5 + 1.8;
+        burstParticles.push({
+          x: cx,
+          y: cy,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - 1.5,
+          size: Math.random() * 5 + 3,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          alpha: 1,
+          decay: Math.random() * 0.015 + 0.01
+        });
+      }
+    }
+
+    function animateCanvas() {
+      ctx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+
+      for (const p of ambientParticles) {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.y < -10) p.y = bgCanvas.height + 10;
+        if (p.x < -10) p.x = bgCanvas.width + 10;
+        if (p.x > bgCanvas.width + 10) p.x = -10;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(245, 223, 172, ${p.alpha})`;
+        ctx.fill();
+      }
+
+      for (let i = burstParticles.length - 1; i >= 0; i--) {
+        const b = burstParticles[i];
+        b.x += b.vx;
+        b.y += b.vy;
+        b.vy += 0.09;
+        b.alpha -= b.decay;
+
+        if (b.alpha <= 0) {
+          burstParticles.splice(i, 1);
+          continue;
+        }
+
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, b.alpha);
+        ctx.fillStyle = b.color;
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.size * 0.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      requestAnimationFrame(animateCanvas);
+    }
+
+    // =========================================================================
+    // 7. 事件绑定
+    // =========================================================================
+    startYesBtn.addEventListener("click", () => {
+      startNightlifeBGM();
+      spawnBurstParticles(28);
+      state.currentIndex = 0;
+      switchScreen("questions");
+      renderQuestion(0, false);
+    });
+
+    answerYesBtn.addEventListener("click", handleAnswerYes);
+    answerNoBtn.addEventListener("click", handleAnswerNo);
+
+    answerNoBtn.addEventListener("mouseenter", () => {
+      if (state.noAttemptsOnCurrent > 0 && state.noAttemptsOnCurrent < 4) {
+        handleAnswerNo();
+      }
+    });
+
+    window.addEventListener("resize", () => {
+      resizeCanvas();
+      initAmbientParticles();
+    });
+
+    window.onload = () => {
+      resizeCanvas();
+      initAmbientParticles();
+      animateCanvas();
+    };
+  </script>
+</body>
+  </html>
